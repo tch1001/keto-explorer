@@ -1,0 +1,658 @@
+<html>
+
+<head>
+    <title>Admin</title>
+    <script>
+        function autocomplete(inp, arr) {
+            /*the autocomplete function takes two arguments,
+            the text field element and an array of possible autocompleted values:*/
+            var currentFocus;
+            /*execute a function when someone writes in the text field:*/
+            function onInput(obj) {
+                var a, b, i, val = obj.value;
+                /*close any already open lists of autocompleted values*/
+                closeAllLists();
+                currentFocus = -1;
+                /*create a DIV element that will contain the items (values):*/
+                a = document.createElement("DIV");
+                a.setAttribute("id", obj.id + "autocomplete-list");
+                a.setAttribute("class", "autocomplete-items");
+                /*append the DIV element as a child of the autocomplete container:*/
+                obj.parentNode.appendChild(a);
+                /*for each item in the array...*/
+                for (i = 0; i < arr.length; i++) {
+                    /*check if the item starts with the same letters as the text field value:*/
+                    if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+                        /*create a DIV element for each matching element:*/
+                        b = document.createElement("DIV");
+                        /*make the matching letters bold:*/
+                        b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+                        b.innerHTML += arr[i].substr(val.length);
+                        /*insert a input field that will hold the current array item's value:*/
+                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                        /*execute a function when someone clicks on the item value (DIV element):*/
+                        b.addEventListener("click", function (e) {
+                            /*insert the value for the autocomplete text field:*/
+                            inp.value = this.getElementsByTagName("input")[0].value;
+                            /*close the list of autocompleted values,
+                            (or any other open lists of autocompleted values:*/
+                            closeAllLists();
+                        });
+                        a.appendChild(b);
+                    }
+                }
+            }
+            inp.addEventListener("input", function (e) {
+                onInput(this)
+            });
+            inp.addEventListener("focus", async function (e) {
+                onInput(this)
+            })
+            /*execute a function presses a key on the keyboard:*/
+            inp.addEventListener("keydown", function (e) {
+                var x = document.getElementById(this.id + "autocomplete-list");
+                if (x) x = x.getElementsByTagName("div");
+                if (e.keyCode == 40) {
+                    /*If the arrow DOWN key is pressed,
+                    increase the currentFocus variable:*/
+                    currentFocus++;
+                    /*and and make the current item more visible:*/
+                    addActive(x);
+                } else if (e.keyCode == 38) { //up
+                    /*If the arrow UP key is pressed,
+                    decrease the currentFocus variable:*/
+                    currentFocus--;
+                    /*and and make the current item more visible:*/
+                    addActive(x);
+                } else if (e.keyCode == 13) {
+                    /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        /*and simulate a click on the "active" item:*/
+                        if (x) x[currentFocus].click();
+                    }
+                }
+            });
+            function addActive(x) {
+                /*a function to classify an item as "active":*/
+                if (!x) return false;
+                /*start by removing the "active" class on all items:*/
+                removeActive(x);
+                if (currentFocus >= x.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = (x.length - 1);
+                /*add class "autocomplete-active":*/
+                x[currentFocus].classList.add("autocomplete-active");
+            }
+            function removeActive(x) {
+                /*a function to remove the "active" class from all autocomplete items:*/
+                for (var i = 0; i < x.length; i++) {
+                    x[i].classList.remove("autocomplete-active");
+                }
+            }
+            function closeAllLists(elmnt) {
+                /*close all autocomplete lists in the document,
+                except the one passed as an argument:*/
+                var x = document.getElementsByClassName("autocomplete-items");
+                for (var i = 0; i < x.length; i++) {
+                    if (elmnt != x[i] && elmnt != inp) {
+                        x[i].parentNode.removeChild(x[i]);
+                    }
+                }
+            }
+            /*execute a function when someone clicks in the document:*/
+            document.addEventListener("click", function (e) {
+                try {
+                    x = (Array.from(e.target.parentNode.classList))
+                    if (x.indexOf('autocomplete') == -1)
+                        closeAllLists()
+                } catch {
+
+                }
+            });
+        }
+        function get_list(class_name) {
+            var ans = [];
+            Array.from(document.getElementsByClassName(class_name)).forEach(element => {
+                if (ans.indexOf(element.innerText) == -1)
+                    ans.push(element.innerText)
+            });
+            return ans
+        }
+        function formatParams(params) {
+            return "?" + Object
+                .keys(params)
+                .map(function (key) {
+                    return key + "=" + encodeURIComponent(params[key])
+                })
+                .join("&")
+        }
+        function onload() {
+            autocomplete(document.getElementById('expand-namespace'), get_list('namespace_data'))
+            autocomplete(document.getElementById('expand-object'), get_list('object_data'))
+            autocomplete(document.getElementById('expand-relation'), get_list('relation_data'))
+            autocomplete(document.getElementById('expand-max-depth'), [])
+            document.getElementById('expand-form').addEventListener('submit', function (e) {
+                e.preventDefault()
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        document.getElementById('expand-result').innerText = xhttp.responseText
+                    } else {
+                        document.getElementById('expand-result').innerText = xhttp.responseText
+                    }
+                }
+
+                xhttp.open("GET", `${window.location.href}/expand` + formatParams({
+                    'namespace': document.getElementById('expand-namespace').value,
+                    'object': document.getElementById('expand-object').value,
+                    'relation': document.getElementById('expand-relation').value,
+                    'max-depth': document.getElementById('expand-max-depth').value,
+                }), true);
+                xhttp.send();
+            })
+            autocomplete(document.getElementById('check-namespace'), get_list('namespace_data'))
+            autocomplete(document.getElementById('check-object'), get_list('object_data'))
+            autocomplete(document.getElementById('check-relation'), get_list('relation_data'))
+            autocomplete(document.getElementById('check-subject_id'), get_list('subject_data'))
+            autocomplete(document.getElementById('check-subject_set_namespace'), get_list('namespace_data'))
+            autocomplete(document.getElementById('check-subject_set_relation'), get_list('relation_data'))
+            autocomplete(document.getElementById('check-subject_set_object'), get_list('object_data'))
+            document.getElementById('check-form').addEventListener('submit', function (e) {
+                e.preventDefault()
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        document.getElementById('check-result').innerText = xhttp.responseText
+                    } else {
+                        document.getElementById('check-result').innerText = xhttp.responseText
+                    }
+                }
+                var params = {
+                    'namespace': document.getElementById('check-namespace').value,
+                    'object': document.getElementById('check-object').value,
+                    'relation': document.getElementById('check-relation').value,
+                    'max-depth': document.getElementById('check-max-depth').value
+                }
+                if(document.getElementById('check-subject-choice').checked){
+                    params['subject_set.namespace'] = document.getElementById('check-subject_set_namespace').value
+                    params['subject_set.relation'] = document.getElementById('check-subject_set_relation').value
+                    params['subject_set.object'] = document.getElementById('check-subject_set_object').value
+                }else{
+                    params['subject_id'] = document.getElementById('check-subject_id').value
+                }
+                xhttp.open("GET", `${window.location.href}/check` + formatParams(params), true)
+                xhttp.send();
+            })
+            autocomplete(document.getElementById('add-namespace'), get_list('namespace_data'))
+            autocomplete(document.getElementById('add-object'), get_list('object_data'))
+            autocomplete(document.getElementById('add-relation'), get_list('relation_data'))
+            autocomplete(document.getElementById('add-subject_id'), get_list('subject_data'))
+            autocomplete(document.getElementById('add-subject_set_namespace'), get_list('namespace_data'))
+            autocomplete(document.getElementById('add-subject_set_relation'), get_list('relation_data'))
+            autocomplete(document.getElementById('add-subject_set_object'), get_list('object_data'))
+            document.getElementById('add-form').addEventListener('submit', function (e) {
+                e.preventDefault()
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        window.location.reload()
+                    } else {
+                        document.getElementById('add-result').innerText = xhttp.responseText
+                    }
+                }
+                var params = {
+                    'namespace': document.getElementById('add-namespace').value,
+                    'object': document.getElementById('add-object').value,
+                    'relation': document.getElementById('add-relation').value,
+                }
+                if(document.getElementById('add-subject-choice').checked){
+                    params['subject_set'] = JSON.stringify({
+                        'namespace': document.getElementById('add-subject_set_namespace').value,
+                        'relation': document.getElementById('add-subject_set_relation').value,
+                        'object': document.getElementById('add-subject_set_object').value,
+                    })
+                }else{
+                    params['subject_id'] = document.getElementById('add-subject_id').value
+                }
+                xhttp.open("POST", `${window.location.href}/add` + formatParams(params), true)
+                xhttp.setRequestHeader("Content-Type", "application/json")
+                xhttp.send(JSON.stringify(params));
+            })
+            document.getElementById('check-subject-choice').addEventListener('change', function(e){
+                document.getElementById("check-subject-id-div").hidden = e.target.checked
+                document.getElementById("check-subject-set-div").hidden = !e.target.checked
+            })
+            document.getElementById('add-subject-choice').addEventListener('change', function(e){
+                document.getElementById("add-subject-id-div").hidden = e.target.checked
+                document.getElementById("add-subject-set-div").hidden = !e.target.checked
+            })
+        }
+    </script>
+</head>
+
+<body onload="onload()">
+    <div class="div-table">
+        <table class="relations">
+            <thead>
+                <tr>
+                    <th>Namespace</th>
+                    <th>Object</th>
+                    <th>Relation</th>
+                    <th>Subject</th>
+                    <th>Subject Set</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in ret['relation_tuples'] %}
+                <tr>
+                    <td class="namespace_data">{{row['namespace']}}</td>
+                    <td class="object_data">{{row['object']}}</td>
+                    <td class="relation_data">{{row['relation']}}</td>
+                    <td class="subject_data">{{row['subject_id']}}</td>
+                    <td class="subject_set_data">{{row['subject_set']}}</td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+        <h1>
+            {{ ret['next_page_token'] }}
+        </h1>
+    </div>
+    <div class="row">
+        <div class="column">
+            <form id="expand-form" autocomplete="off" action="/admin/expand" method="POST">
+                <label for="expand-namespace">Namespace: </label>
+                <div class="autocomplete">
+                    <input type="text" id="expand-namespace" />
+                </div><br>
+
+                <label for="expand-object">Object: </label>
+                <div class="autocomplete">
+                    <input type="text" id="expand-object" />
+                </div><br>
+
+                <label for="expand-relation">Relation: </label>
+                <div class="autocomplete">
+                    <input type="text" id="expand-relation" />
+                </div><br>
+
+                <label for="expand-max-depth">Max-Depth: </label>
+                <div class="autocomplete">
+                    <input type="text" id="expand-max-depth" />
+                </div><br>
+                <input type="submit" value='Expand' />
+            </form>
+            <div class="result">
+                <h3> Expand Result: </h3>
+                <h3 id="expand-result"> </h3>
+            </div>
+        </div>
+
+        <div class="column">
+            <form id="check-form" autocomplete="off">
+                <label for="check-namespace">Namespace: </label>
+                <div class="autocomplete">
+                    <input type="text" id="check-namespace" />
+                </div><br>
+
+                <label for="check-object">Object: </label>
+                <div class="autocomplete">
+                    <input type="text" id="check-object" />
+                </div><br>
+
+                <label for="check-relation">Relation: </label>
+                <div class="autocomplete">
+                    <input type="text" id="check-relation" />
+                </div><br>
+                <div class="row">
+                    <div class="column-left">
+                        <label for="check-subject-choice">
+                            Subject ID / Subject Set
+                        </label>
+                    </div>
+                    <div class="column-right">
+                        <label class="switch">
+                            <input type="checkbox" id="check-subject-choice" />
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div id="check-subject-id-div">
+                    <label for="check-subject_id">Subject ID: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="check-subject_id" />
+                    </div><br>
+                </div>
+                <div id="check-subject-set-div" hidden>
+                    <label for="check-subject_set_namespace">Subject Set Namespace: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="check-subject_set_namespace" />
+                    </div><br>
+                    <label for="check-subject_set_object">Subject Set Object: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="check-subject_set_object" />
+                    </div><br>
+                    <label for="check-subject_set_relation">Subject Set Relation: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="check-subject_set_relation" />
+                    </div><br>
+                </div>
+                <label for="check-max-depth">Max-Depth: </label>
+                <div class="autocomplete">
+                    <input type="text" id="check-max-depth" />
+                </div><br>
+                <input type="submit" value='Check' />
+            </form>
+            <div class="result">
+                <h3> Check Result: </h3>
+                <h3 id="check-result"> </h3>
+            </div>
+        </div>
+        <div class="column">
+            <form id="add-form" autocomplete="off">
+                <label for="add-namespace">Namespace: </label>
+                <div class="autocomplete">
+                    <input type="text" id="add-namespace" />
+                </div><br>
+
+                <label for="add-object">Object: </label>
+                <div class="autocomplete">
+                    <input type="text" id="add-object" />
+                </div><br>
+
+                <label for="add-relation">Relation: </label>
+                <div class="autocomplete">
+                    <input type="text" id="add-relation" />
+                </div><br>
+                <div class="row">
+                    <div class="column-left">
+                        <label for="add-subject-choice">
+                            Subject ID / Subject Set
+                        </label>
+                    </div>
+                    <div class="column-right">
+                        <label class="switch">
+                            <input type="checkbox" id="add-subject-choice" />
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div id="add-subject-id-div">
+                    <label for="add-subject_id">Subject: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="add-subject_id" />
+                    </div><br>
+                </div>
+                <div id="add-subject-set-div" hidden>
+                    <label for="add-subject_set_namespace">Subject Set Namespace: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="add-subject_set_namespace" />
+                    </div><br>
+                    <label for="add-subject_set_object">Subject Set Object: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="add-subject_set_object" />
+                    </div><br>
+                    <label for="add-subject_set_relation">Subject Set Relation: </label>
+                    <div class="autocomplete">
+                        <input type="text" id="add-subject_set_relation" />
+                    </div><br>
+                </div>
+                <input type="submit" value='Add Relation' />
+            </form>
+            <h3>Add Result: </h3>
+            <h3 id="add-result"> </h3>
+        </div>
+    </div>
+
+</body>
+
+<style>
+    div.div-table {
+        height: 40%;
+        overflow-y: scroll;
+    }
+
+    table.relations {
+        border-collapse: collapse;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* thead { display: block; } */
+    tbody {
+        height: 100px;
+        overflow-x: auto;
+        overflow-y: scroll;
+    }
+
+    th,
+    td {
+        text-align: left;
+        padding: 8px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #D6EEEE;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+
+    body {
+        font: 16px Arial;
+    }
+
+    .autocomplete {
+        /*the container must be positioned relative:*/
+        position: relative;
+        display: inline-block;
+    }
+
+    input {
+        border: 1px solid transparent;
+        background-color: #f1f1f1;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    input[type=text] {
+        background-color: #f1f1f1;
+        width: 100%;
+    }
+
+    input[type=submit] {
+        background-color: DodgerBlue;
+        color: #fff;
+    }
+
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        /*position the autocomplete items to be the same width as the container:*/
+        top: 100%;
+        left: 0;
+        right: 0;
+    }
+
+    .autocomplete-items div {
+        padding: 10px;
+        cursor: pointer;
+        background-color: #fff;
+        border-bottom: 1px solid #d4d4d4;
+    }
+
+    .autocomplete-items div:hover {
+        /*when hovering an item:*/
+        background-color: #e9e9e9;
+    }
+
+    .autocomplete-active {
+        /*when navigating through the items using the arrow keys:*/
+        background-color: DodgerBlue !important;
+        color: #ffffff;
+    }
+
+
+
+    .column {
+        float: left;
+        width: 33.33%;
+    }
+
+    .column-left {
+        float: left;
+        width: 40%;
+        height: 34px;
+        align-items: center;
+        display: flex;
+    }
+    .column-right {
+        float: left;
+        width: 50%;
+    }
+    div.result {
+        overflow-x: auto;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .container {
+        display: block;
+        position: relative;
+        padding-left: 35px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        font-size: 22px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    /* Hide the browser's default checkbox */
+    .container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    /* Create a custom checkbox */
+    .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 25px;
+        width: 25px;
+        background-color: #eee;
+    }
+
+    /* On mouse-over, add a grey background color */
+    .container:hover input~.checkmark {
+        background-color: #ccc;
+    }
+
+    /* When the checkbox is checked, add a blue background */
+    .container input:checked~.checkmark {
+        background-color: #2196F3;
+    }
+
+    /* Create the checkmark/indicator (hidden when not checked) */
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    /* Show the checkmark when checked */
+    .container input:checked~.checkmark:after {
+        display: block;
+    }
+
+    /* Style the checkmark/indicator */
+    .container .checkmark:after {
+        left: 9px;
+        top: 5px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    input:checked+.slider {
+        background-color: #2196F3;
+    }
+
+    input:focus+.slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked+.slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+</style>
+
+</html>

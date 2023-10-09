@@ -1,0 +1,38 @@
+networks:
+  internal:
+services:
+  server:
+    build: 
+      dockerfile: ./containers/flask/Dockerfile
+      context: .
+#    image: keto-explorer:latest
+    networks:
+      - internal
+    ports:
+      - "8888:5001"
+  keto:
+    image: oryd/keto:v0.9.0
+    ports:
+      - "4466:4466"
+      - "4467:4467"
+    command: serve -c /home/ory/keto.yml
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: ./containers/keto
+        target: /home/ory
+    networks:
+      - internal
+
+  keto-init:
+    image: oryd/keto:v0.9.0
+    environment:
+      - KETO_WRITE_REMOTE=keto:4467
+    volumes:
+      - type: bind
+        source: ./containers/keto
+        target: /home/ory
+    command: relation-tuple create /home/ory/relation-tuples
+    restart: on-failure
+    networks:
+      - internal
