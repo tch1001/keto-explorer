@@ -21,5 +21,5 @@ Solution: Just follow the instructions in the Docker Desktop App.
 ```
 docker-compose up -d 
 docker ps # make sure ports are forwarded
-ENV_FILE=.env.development && flask run --port 5001
+ENV_FILE=.env.development flask run --port 5001
 ```

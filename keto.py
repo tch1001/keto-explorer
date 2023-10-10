@@ -32,16 +32,27 @@ def add_relation():
     try:
         jsonData = (json.loads(request.data))
         # app.logger.info(jsonData)
-        print("HI")
         if('subject_set' in jsonData):
             jsonData['subject_set'] = json.loads(jsonData['subject_set'])
-        print("HI")
-        add : Response = requests.put(f"{KETO_WRITE_URL}/relation-tuples", 
+        add : Response = requests.put(f"{KETO_WRITE_URL}/admin/relation-tuples", 
                 data = json.dumps(jsonData))
-        print("HI")
     except Exception as e:
         return str(e), 404
     if(add.status_code == 201):
         return 'ok', 200
     else:
         return add.text, 404
+
+def delete_relation():
+    try:
+        jsonData = json.loads(request.data)
+        if('subject_set' in jsonData):
+            jsonData['subject_set'] = json.loads(jsonData['subject_set'])
+        delete : Response = requests.delete(f"{KETO_WRITE_URL}/admin/relation-tuples", 
+                data = json.dumps(jsonData))
+    except Exception as e:
+        return str(e), 404
+    if(delete.status_code == 204):
+        return 'ok', 200
+    else:
+        return delete.text, 404

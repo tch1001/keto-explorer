@@ -58,7 +58,7 @@
                     currentFocus++;
                     /*and and make the current item more visible:*/
                     addActive(x);
-                } else if (e.keyCode == 38) { //up
+                } else if (e.keyCode == 38) { 
                     /*If the arrow UP key is pressed,
                     decrease the currentFocus variable:*/
                     currentFocus--;
@@ -131,6 +131,40 @@
             autocomplete(document.getElementById('expand-object'), get_list('object_data'))
             autocomplete(document.getElementById('expand-relation'), get_list('relation_data'))
             autocomplete(document.getElementById('expand-max-depth'), [])
+            function delete_handler(e) {
+                e.preventDefault()
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        window.location.reload()
+                    } else {
+                        document.getElementById('add-delete-result').innerText = xhttp.responseText
+                    }
+                }
+                const rowIdx = e.target.getElementsByClassName('delete')[0].getAttribute('data-idx')
+                const namespace_data = document.querySelector(`[data-idx="${rowIdx}"].namespace_data`).innerText
+                const object_data = document.querySelector(`[data-idx="${rowIdx}"].object_data`).innerText
+                const relation_data = document.querySelector(`[data-idx="${rowIdx}"].relation_data`).innerText  
+                const subject_data = document.querySelector(`[data-idx="${rowIdx}"].subject_data`).innerText  
+                const subject_set_data = document.querySelector(`[data-idx="${rowIdx}"].subject_set_data`).innerText  
+                var params = {
+                    'namespace': namespace_data,
+                    'object': object_data,
+                    'relation': relation_data,
+                }
+                if(subject_data != ''){
+                    params['subject_id'] = subject_data
+                }else{
+                    params['subject_set'] = subject_set_data
+                }
+                xhttp.open("POST", `/delete`, true);
+                xhttp.send(JSON.stringify(params));
+            }
+            console.log(document.getElementsByClassName('delete-form'))
+            for(let element of document.getElementsByClassName('delete-form')){
+                element.addEventListener('submit', delete_handler)
+            }
+            
             document.getElementById('expand-form').addEventListener('submit', function (e) {
                 e.preventDefault()
                 var xhttp = new XMLHttpRequest();
@@ -197,7 +231,7 @@
                     if (this.readyState == 4 && this.status == 200) {
                         window.location.reload()
                     } else {
-                        document.getElementById('add-result').innerText = xhttp.responseText
+                        document.getElementById('add-delete-result').innerText = xhttp.responseText
                     }
                 }
                 var params = {
@@ -214,7 +248,7 @@
                 }else{
                     params['subject_id'] = document.getElementById('add-subject_id').value
                 }
-                xhttp.open("POST", `${window.location.href}/add` + formatParams(params), true)
+                xhttp.open("POST", `${window.location.href}/add`, true)
                 xhttp.setRequestHeader("Content-Type", "application/json")
                 xhttp.send(JSON.stringify(params));
             })
@@ -235,21 +269,27 @@
         <table class="relations">
             <thead>
                 <tr>
-                    <th>Namespace</th>
+                    <th>Namespace (use "default")</th>
                     <th>Object</th>
                     <th>Relation</th>
                     <th>Subject</th>
                     <th>Subject Set</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in ret['relation_tuples'] %}
                 <tr>
-                    <td class="namespace_data">{{row['namespace']}}</td>
-                    <td class="object_data">{{row['object']}}</td>
-                    <td class="relation_data">{{row['relation']}}</td>
-                    <td class="subject_data">{{row['subject_id']}}</td>
-                    <td class="subject_set_data">{{row['subject_set']}}</td>
+                    <td class="namespace_data" data-idx="{{loop.index}}">{{row['namespace']}}</td>
+                    <td class="object_data" data-idx="{{loop.index}}">{{row['object']}}</td>
+                    <td class="relation_data" data-idx="{{loop.index}}">{{row['relation']}}</td>
+                    <td class="subject_data" data-idx="{{loop.index}}">{{row['subject_id']}}</td>
+                    <td class="subject_set_data" data-idx="{{loop.index}}">{{row['subject_set']}}</td>
+        		    <td class="edit_delete">
+                        <form class="delete-form">
+        		    	    <input type="submit" class="delete" data-idx="{{loop.index}}" value="Delete"/>
+                        </form>
+        		    </td>
                 </tr>
 
                 {% endfor %}
@@ -400,8 +440,8 @@
                 </div>
                 <input type="submit" value='Add Relation' />
             </form>
-            <h3>Add Result: </h3>
-            <h3 id="add-result"> </h3>
+            <h3>Add/Delete Result: </h3>
+            <h3 id="add-delete-result"> </h3>
         </div>
     </div>
 
