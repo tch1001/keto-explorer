@@ -5,7 +5,7 @@ services:
     build: 
       dockerfile: ./containers/flask/Dockerfile
       context: .
-#    image: keto-explorer:latest
+    image: tch1001/keto-explorer-server:v1
     networks:
       - internal
     ports:

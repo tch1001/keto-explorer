@@ -1,13 +1,17 @@
 # Instructions
 [Youtube Tutorial](TODO)
 
-There are many ways to setup a local copy, but the easiest is to use Docker Compose.
+The easiest way to setup a local testing server is to use Docker Compose.
 
 ## Using Docker Compose (Recommended)
 ```
-
+docker compose up -d 
+docker ps # check ports are forwarded correctly
+curl http://127.0.0.1:4466/health/ready # should be {"status": "ok}
+curl http://127.0.0.1:4467/health/ready # should be {"status": "ok}
 ```
-
+Open `http://127.0.0.1:8888` in your browser
+ 
 # Common Errors
 Here are some common errors.
 
@@ -20,6 +24,5 @@ Solution: Just follow the instructions in the Docker Desktop App.
 # Development
 ```
 docker-compose up -d 
-docker ps # make sure ports are forwarded
-ENV_FILE=.env.development flask run --port 5001
+ENV_FILE=.env.development FLASK_DEBUG=1 flask run --port 5001 
 ```
