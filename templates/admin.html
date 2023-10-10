@@ -146,7 +146,8 @@
                 const object_data = document.querySelector(`[data-idx="${rowIdx}"].object_data`).innerText
                 const relation_data = document.querySelector(`[data-idx="${rowIdx}"].relation_data`).innerText  
                 const subject_data = document.querySelector(`[data-idx="${rowIdx}"].subject_data`).innerText  
-                const subject_set_data = document.querySelector(`[data-idx="${rowIdx}"].subject_set_data`).innerText  
+                var subject_set_data = document.querySelector(`[data-idx="${rowIdx}"].subject_set_data`).innerText  
+                subject_set_data = subject_set_data.replaceAll("'", '"')
                 var params = {
                     'namespace': namespace_data,
                     'object': object_data,
