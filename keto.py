@@ -43,12 +43,15 @@ def add_relation():
     else:
         return add.text, 404
 
+def formatParams(jsonData):
+    return "?" + "&".join([f"{key}={value}" for key, value in jsonData.items()])
+
 def delete_relation():
     try:
         jsonData = json.loads(request.data)
         if('subject_set' in jsonData):
             jsonData['subject_set'] = json.loads(jsonData['subject_set'])
-        delete : Response = requests.delete(f"{KETO_WRITE_URL}/admin/relation-tuples", 
+        delete : Response = requests.delete(f"{KETO_WRITE_URL}/admin/relation-tuples" + formatParams(jsonData), 
                 data = json.dumps(jsonData))
     except Exception as e:
         return str(e), 404

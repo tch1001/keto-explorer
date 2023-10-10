@@ -160,7 +160,6 @@
                 xhttp.open("POST", `/delete`, true);
                 xhttp.send(JSON.stringify(params));
             }
-            console.log(document.getElementsByClassName('delete-form'))
             for(let element of document.getElementsByClassName('delete-form')){
                 element.addEventListener('submit', delete_handler)
             }
