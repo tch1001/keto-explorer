@@ -6,6 +6,8 @@ log:
 namespaces:
   - id: 0
     name: default
+  - id: 1
+    name: videos
 
 dsn: memory
 

@@ -28,11 +28,12 @@ services:
     image: oryd/keto:v0.9.0
     environment:
       - KETO_WRITE_REMOTE=keto:4467
+        # entrypoint: tail -f /dev/null
     volumes:
       - type: bind
         source: ./containers/keto
         target: /home/ory
-    command: relation-tuple create /home/ory/relation-tuples
+    command: relation-tuple create /home/ory/relation_tuples
     restart: on-failure
     networks:
       - internal
