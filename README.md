@@ -1,5 +1,5 @@
 # Instructions
-[Youtube Tutorial](TODO)
+[Youtube Tutorial](https://youtu.be/OYnHHgYkW2c)
 
 The easiest way to setup a local testing server is to use Docker Compose.
 
